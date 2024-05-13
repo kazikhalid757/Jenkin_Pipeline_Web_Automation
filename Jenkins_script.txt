@@ -1,0 +1,44 @@
+//GitHub Project/Gitlab Project script  :
+
+
+
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Debugging step: Print Git remote URLs'
+                checkout([$class: 'GitSCM',
+                          branches: [[name: 'main']],
+                          userRemoteConfigs: [[url: 'your github/gitlab project link’,
+                                               credentialsId: 'your credentialsId']]])
+            }
+        }
+        stage('Debug') {
+            steps {
+                echo 'Debugging step: Print branch information'
+                bat 'git branch -a'
+                bat 'git log --oneline'
+            }
+        }
+        stage('Build') {
+            steps {
+                bat 'mvn clean package'
+            }
+        }
+        stage('Test') {
+            steps {
+                bat 'mvn test'
+            }
+        }
+        stage('Result') {
+            steps {
+                allure includeProperties:
+                     false,
+                     jdk: '',
+                     results: [[path: 'build/allure-results']]
+            }
+        }
+    }
+}
